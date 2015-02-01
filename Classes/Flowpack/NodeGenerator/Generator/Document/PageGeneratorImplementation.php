@@ -29,6 +29,7 @@ class PageGeneratorImplementation extends AstractNodeGeneratorImplementation {
 
 		$childrenNode = $parentNode->createNode($name, $nodeType);
 		$childrenNode->setProperty('title', $title);
+		$childrenNode->setProperty('uriPathSegment', Utility::renderValidNodeName($name));
 
 		return $childrenNode;
 	}
