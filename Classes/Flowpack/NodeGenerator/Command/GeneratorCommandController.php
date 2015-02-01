@@ -27,6 +27,12 @@ class GeneratorCommandController extends \TYPO3\Flow\Cli\CommandController {
 
 	/**
 	 * @Flow\Inject
+	 * @var \TYPO3\TYPO3CR\Domain\Repository\NodeDataRepository
+	 */
+	protected $nodeDataRepository;
+
+	/**
+	 * @Flow\Inject
 	 * @var \TYPO3\TYPO3CR\Domain\Repository\WorkspaceRepository
 	 */
 	protected $workspaceRepository;
@@ -47,8 +53,9 @@ class GeneratorCommandController extends \TYPO3\Flow\Cli\CommandController {
 	 * Creates a big collection of node for performance benchmarking
 	 * @param string $siteNode
 	 * @param string $preset
+	 * @param string $path
 	 */
-	public function nodesCommand($siteNode, $preset) {
+	public function nodesCommand($siteNode, $preset, $path) {
 		if (!(isset($this->presets[$preset]))) {
 			$this->outputLine('Error: Invalid preset');
 			$this->quit(1);
@@ -71,6 +78,17 @@ class GeneratorCommandController extends \TYPO3\Flow\Cli\CommandController {
 
 		/** @var Node $siteNode */
 		$siteNode = $contentContext->getCurrentSiteNode();
+
+		// optionally, make the path absolute
+		if ($path && strpos('/',$path) !== 0) $path = $siteNode->getPath() . '/' . $path;
+
+		if ($path && $node = $this->nodeDataRepository->findOneByPath($path, $contentContext->getWorkspace())) {
+			$siteNode = $contentContext->getNodeByIdentifier($node->getIdentifier());
+		} else {
+			$this->outputLine(sprintf('Error: Cannot find the node for path "%s".', $path));
+			$this->quit(1);
+		}
+
 		if ($siteNode === NULL) {
 			$this->outputLine('Error: No site root node');
 			$this->quit(1);
