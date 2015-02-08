@@ -9,6 +9,7 @@ namespace Flowpack\NodeGenerator\Generator;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Resource\ResourceManager;
 use TYPO3\Media\Domain\Model\Image;
+use TYPO3\Media\Domain\Model\ImageInterface;
 use TYPO3\Media\Domain\Model\ImageVariant;
 use TYPO3\Media\Domain\Repository\ImageRepository;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
@@ -32,19 +33,39 @@ abstract class AstractNodeGeneratorImplementation implements NodeGeneratorImplem
 	protected $imageRepository;
 
 	/**
+	 * @param array $imageThumbnailOptions
 	 * @return ImageVariant
 	 */
-	protected function getRandommImageVariant() {
-		$image = new Image($this->resourceManager->importResource(sprintf('resource://Flowpack.NodeGenerator/Private/Images/Sample%d.jpg', rand(1,3))));
-		$this->imageRepository->add($image);
-
+	protected function getRandommImageVariant($imageThumbnailOptions = NULL) {
+		$randomFilename = sprintf('Sample%d.jpg', rand(1,3));
+		$query = $this->imageRepository->createQuery();
+		$result = $query->matching($query->like('resource.filename', $randomFilename))->execute();
+		if (!($result && $image = $result->getFirst())) {
+			$image = new Image($this->resourceManager->importResource(sprintf('resource://Flowpack.NodeGenerator/Private/Images/%s',$randomFilename)));
+			$this->imageRepository->add($image);
+		}
 		return $image->createImageVariant(array(
 			array(
-				'command' => 'thumbnail',
+				// set the cropping accordingly, else the Neos Backend
+				// Image Inspector is somehow broken..
+				'command' => 'crop',
 				'options' => array(
+					'start' => array(
+						'x' => 0,
+						'y' => 0,
+					),
 					'size' => array(
-						'width' => 1500,
-						'height' => 1024
+						'width' => $image->getWidth(),
+						'height' => $image->getHeight(),
+					),
+				),
+			),
+			array(
+				'command' => 'thumbnail',
+				'options' => $imageThumbnailOptions ? $imageThumbnailOptions : array(
+					'size' => array(
+						'width' => 1920, // full-hd resolution
+						'height' => 1280
 					)
 				),
 			),
