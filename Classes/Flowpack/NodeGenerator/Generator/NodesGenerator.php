@@ -7,6 +7,7 @@ namespace Flowpack\NodeGenerator\Generator;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Cli\ConsoleOutput;
 use TYPO3\Flow\Exception;
 use TYPO3\Flow\Object\ObjectManagerInterface;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
@@ -43,10 +44,16 @@ class NodesGenerator {
 	protected $generators;
 
 	/**
+	 * @var ConsoleOutput
+	 */
+	protected $consoleOutput;
+
+	/**
 	 * @param PresetDefinition $preset
 	 */
-	function __construct(PresetDefinition $preset) {
+	function __construct(PresetDefinition $preset, ConsoleOutput $consoleOutput) {
 		$this->preset = $preset;
+		$this->consoleOutput = $consoleOutput;
 	}
 
 	public function generate() {
@@ -71,7 +78,13 @@ class NodesGenerator {
 	 * @param int $level
 	 */
 	protected function createBatchDocumentNode(NodeInterface $baseNode, $level = 0) {
-		for ($i = 0; $i < $this->preset->getNodeByLevel(); $i++) {
+
+		$maxNodeByLevel = $this->preset->getNodeByLevel();
+
+		if ($level == 0 && $this->consoleOutput) $this->consoleOutput->progressStart($maxNodeByLevel);
+
+		for ($i = 0; $i < $maxNodeByLevel; $i++) {
+			if ($level == 0 && $this->consoleOutput) $this->consoleOutput->progressAdvance();
 			try {
 				$nodeType = $this->nodeTypeManager->getNodeType($this->preset->getDocumentNodeType());
 				$generator = $this->getNodeGeneratorImplementationClassByNodeType($nodeType);
@@ -85,6 +98,8 @@ class NodesGenerator {
 
 			}
 		}
+
+		if ($level == 0 && $this->consoleOutput) $this->consoleOutput->progressFinish();
 	}
 
 	/**

@@ -12,7 +12,7 @@ use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Neos\Domain\Model\Site;
 use TYPO3\Neos\Domain\Service\ContentContext;
 use TYPO3\TYPO3CR\Domain\Model\Node;
-use TYPO3\TYPO3CR\Domain\Service\ContextInterface;
+use TYPO3\TYPO3CR\Domain\Service\Context;
 
 /**
  * Generator Controller
@@ -51,18 +51,20 @@ class GeneratorCommandController extends \TYPO3\Flow\Cli\CommandController {
 
 	/**
 	 * Creates a big collection of node for performance benchmarking
-	 * @param string $siteNode
 	 * @param string $preset
 	 * @param string $path
+	 * @param string $siteNode leave empty to use the first online
 	 */
-	public function nodesCommand($siteNode, $preset, $path) {
+	public function nodesCommand($preset, $path, $siteNode=null) {
 		if (!(isset($this->presets[$preset]))) {
 			$this->outputLine('Error: Invalid preset');
 			$this->quit(1);
 		}
 		$preset = $this->presets[$preset];
 		/** @var Site $currentSite */
-		$currentSite = $this->siteRepository->findOneByNodeName($siteNode);
+		$currentSite = $siteNode ? $this->siteRepository->findOneByNodeName($siteNode) :
+			$this->siteRepository->findFirstOnline();
+
 		if ($currentSite === NULL) {
 			$this->outputLine('Error: No site for exporting found');
 			$this->quit(1);
@@ -94,7 +96,7 @@ class GeneratorCommandController extends \TYPO3\Flow\Cli\CommandController {
 			$this->quit(1);
 		}
 		$preset = new PresetDefinition($siteNode, $preset);
-		$generator = new NodesGenerator($preset);
+		$generator = new NodesGenerator($preset, $this->output);
 
 		$generator->generate();
 	}
@@ -102,7 +104,7 @@ class GeneratorCommandController extends \TYPO3\Flow\Cli\CommandController {
 	/**
 	 * @param Site $currentSite
 	 * @param string $workspace
-	 * @return ContextInterface
+	 * @return Context
 	 */
 	protected function createContext(Site $currentSite, $workspace = 'live') {
 		return $this->contextFactory->create(array(
