@@ -28,7 +28,7 @@ class PostGeneratorImplementation extends PageGeneratorImplementation {
 		$postNode = parent::create($parentNode, $nodeType);
 		$date = Date::random('-1 week');
 		$postNode->setProperty('datePublished', $date);
-		$postNode->setProperty('image', $this->getRandommImageVariant());
+		$postNode->setProperty('image', $this->getRandomImage());
 
 		return $postNode;
 	}

@@ -23,7 +23,7 @@ class TextWithImageGeneratorImplementation extends TextGeneratorImplementation {
 	 */
 	public function create(NodeInterface $parentNode, NodeType $nodeType) {
 		$node = parent::create($parentNode, $nodeType);
-		$node->setProperty('image', $this->getRandommImageVariant());
+		$node->setProperty('image', $this->getRandomImage());
 
 		if (rand(0,10) === 0) {
 			$node->setProperty('hasCaption', TRUE);
