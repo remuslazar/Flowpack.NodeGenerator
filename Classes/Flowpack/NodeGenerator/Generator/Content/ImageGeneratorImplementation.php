@@ -24,13 +24,10 @@ class ImageGeneratorImplementation extends TextGeneratorImplementation {
 	public function create(NodeInterface $parentNode, NodeType $nodeType) {
 		$node = parent::create($parentNode, $nodeType);
 		$node->setProperty('image', $this->getRandomImage());
-		
-		if (rand(0,10) === 0) {
-			$node->setProperty('hasCaption', TRUE);
-			$node->setProperty('caption', Lorem::sentence(rand(5, 12)));
-			$node->setProperty('title', Lorem::sentence(rand(5, 12)));
-			$node->setProperty('alternativeText', Lorem::sentence(rand(5, 12)));
-		}
+		$node->setProperty('hasCaption', TRUE);
+		$node->setProperty('caption', Lorem::sentence(rand(5, 12)));
+		$node->setProperty('title', Lorem::sentence(rand(5, 12)));
+		$node->setProperty('alternativeText', Lorem::sentence(rand(5, 12)));
 
 		return $node;
 	}
